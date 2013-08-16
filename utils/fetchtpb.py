@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import web
 import urllib2
 import re
 from getopt import *
@@ -12,6 +13,10 @@ from config.settings import hotrank_tpb_weighted, hotrank_top_weighted
 from models import mirrordb
 from config.settings import alldbname
 
+#util_database = "D:\\workspace\\python\\webpy\\workspace\\simpletpb\\database\\tpbmirror.db"
+#util_db = web.database(dbn='sqlite', db = util_database)
+#print util_db
+    
 def get_topURL(startURL):
     "获取startURL页面上的所有链接，仅限于top页面"
     topfp = urllib2.urlopen(startURL)
@@ -21,7 +26,7 @@ def get_topURL(startURL):
         if not s:
             break
         urls = pattern.findall(s)
-        urls = ["http://labaia.ws/" + url for url in urls]
+        urls = ["http://thepiratebay.sx/" + url for url in urls]
         topfp.close()
         return urls
 
@@ -32,7 +37,7 @@ def get_allURL(startURL):
     pattern = re.compile("browse/[0-9]+")
     s = allfp.read()
     urls = pattern.findall(s)
-    urls = ["http://labaia.ws/" + url + '/' for url in urls]
+    urls = ["http://thepiratebay.sx/" + url + '/' for url in urls]
     allfp.close()
 
     totalurls = []
@@ -42,7 +47,7 @@ def get_allURL(startURL):
                 totalurls.append(url + str(i) + '/' + str(ii) + '/')
     return totalurls
 
-def get_recent_url(begin, end, startURL = 'http://labaia.ws/recent/'):
+def get_recent_url(begin, end, startURL = 'http://thepiratebay.sx/recent/'):
     url_base = startURL
     urllist = []
     for i in range(begin, end - begin + 1):
@@ -63,14 +68,21 @@ def fetch(url, dbname = alldbname):
     try:
         soup = BeautifulSoup.BeautifulSoup(doc.read())
         souptrs = BeautifulSoup.BeautifulSoup(str(soup.findAll('tr')))
+        
     except:
         print 'BeautifulSoup Err'
         return
 
+    i=0
     for tr in souptrs.contents[2:]:
+        i = i+1
+        #print i
+        if i > 30:
+            break
+            
         if hasattr(tr, 'name'):
             #获取资源名称，类别，链接地址及大小
-            i = 0
+            
             try:
                 acollect = tr.findAll('a')
                 typeL1 = ''.join(acollect[0].contents)
@@ -94,12 +106,13 @@ def fetch(url, dbname = alldbname):
                 util_db.insert('all_resource', resource_name = name,
                                                  typeL1 = typeL1, typeL2 = typeL2, magnet = magnet, size = size,
                                                  hotrank = hotrank, extern_info = 'False', language = 'EN', ed2k = '')
-            except:
-                i = i + 1
+            except Exception as inst:
+                #i = i + 1
                 print 'fetch resouce url Err, url:%s' % (url)
-                if i > 3:
-                    break
-
+                print inst
+                #if i > 3:
+                #    break
+                
 #just for test
 def fetch_all(urllist, begin, end):
     for url in urllist:
@@ -111,6 +124,7 @@ def fetch_all(urllist, begin, end):
 
 def fetch_recent(begin, end):
     for url in get_recent_url(begin, end):
+        print "url: " +url
         try:
             fetch(url, dbname=alldbname)
         except:
@@ -121,11 +135,11 @@ def fetch_recent(begin, end):
 class index():
     def GET(self):
         fetch_recent(0, 10)
-        return 'OK'
+        return 'fetch 0-10'
 
     def POST(self):
         fetch_recent(0, 100)
-        return 'OK'
+        return 'fetch 0-100'
 """"
 抓取海盗湾
 使用方法:
@@ -135,8 +149,8 @@ class index():
 if __name__ == '__main__':
     opts, args = getopt(sys.argv[1:], "limit=")
     print args[0], args[1]
-#    fetch('http://labaia.ws/top/602')
-#    startURL = 'http://labaia.ws/browse/'
+#    fetch('http://thepiratebay.sx/top/602')
+#    startURL = 'http://thepiratebay.sx/browse/'
 #    urllist = get_allURL(startURL)
     fetch_recent(int(args[0]), int(args[1]))
 

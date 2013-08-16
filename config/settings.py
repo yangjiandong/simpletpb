@@ -5,14 +5,15 @@ import models
 import os
 
 #如果是在本地调试，请打开此开关，如果上传到sae，请置为False
-LOCAL_DEBUG = False
+LOCAL_DEBUG = True
 LOCAL_MYSQL_DEBUG = False
 
 if LOCAL_DEBUG:
     database = "database/tpbmirror.db"
     db = web.database(dbn='sqlite', db=database)
 
-    util_database = "../database/tpbmirror.db"
+    #util_database = "../database/tpbmirror.db"
+    util_database = "D:\\workspace\\python\\webpy\\workspace\\simpletpb\\database\\tpbmirror.db"
     util_db = web.database(dbn='sqlite', db = util_database)
 
     templates_root = 'templates'
@@ -20,7 +21,7 @@ else:
     import sae
     app_root = os.path.dirname(__file__)
     templates_root = os.path.join(app_root, '../templates')
-    db = web.database(dbn='mysql', db=sae.const.MYSQL_DB, host=sae.const.MYSQL_HOST, 
+    db = web.database(dbn='mysql', db=sae.const.MYSQL_DB, host=sae.const.MYSQL_HOST,
         port=int(sae.const.MYSQL_PORT),user=sae.const.MYSQL_USER, pw=sae.const.MYSQL_PASS)
     util_db = db
 
